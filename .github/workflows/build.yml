@@ -1,0 +1,102 @@
+name: CodeSprint CI/CD Pipeline
+
+# Trigger the workflow
+on:
+  # Trigger on push to main branch
+  push:
+    branches:
+      - main
+      - master
+  
+  # Trigger on pull requests
+  pull_request:
+    branches:
+      - main
+      - master
+
+# Environment variables (optional)
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  # Job 1: Build and Test
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      # Step 1: Checkout the source code
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      # Step 2: Setup Java 17
+      - name: Set up Java 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+      
+      # Step 3: Run Maven build and tests
+      - name: Build with Maven
+        run: mvn clean package
+      
+      # Step 4: Run tests explicitly (optional, included in package)
+      - name: Run tests
+        run: mvn test
+      
+      # Step 5: Display build status
+      - name: Build Status
+        run: echo "Build completed successfully!"
+
+  # Job 2: Build and Push Docker Image (optional)
+  docker:
+    needs: build
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: read
+      packages: write
+    
+    steps:
+      # Step 1: Checkout the source code
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      # Step 2: Set up Docker Buildx (for building multi-platform images)
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      
+      # Step 3: Login to GitHub Container Registry
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      
+      # Step 4: Extract metadata for Docker image
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=ref,event=branch
+            type=sha,prefix={{branch}}-
+      
+      # Step 5: Build and push Docker image
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache
+          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache,mode=max
+      
+      # Step 6: Docker build status
+      - name: Docker Build Status
+        run: echo "Docker image built and pushed successfully!"

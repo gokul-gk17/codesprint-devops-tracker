@@ -1,0 +1,36 @@
+# Git
+.git
+.gitignore
+
+# Maven
+target/
+*.jar
+*.war
+
+# IDE
+.vscode/
+.idea/
+*.iml
+*.iws
+*.ipr
+.classpath
+.project
+.settings/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Node
+node_modules/
+npm-debug.log
+
+# Other
+.env
+.env.local
+README.md
+HELP.md

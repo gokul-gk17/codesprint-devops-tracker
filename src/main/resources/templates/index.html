@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CodeSprint - Task Manager Dashboard</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #6366f1;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .navbar {
+            background-color: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--primary-color) !important;
+        }
+        
+        .dashboard-container {
+            padding: 40px 20px;
+            min-height: 100vh;
+        }
+        
+        .dashboard-header {
+            color: white;
+            text-align: center;
+            margin-bottom: 50px;
+        }
+        
+        .dashboard-header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        
+        .dashboard-header p {
+            font-size: 1.1rem;
+            opacity: 0.95;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border-left: 5px solid;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        }
+        
+        .stat-card-total {
+            border-left-color: var(--primary-color);
+        }
+        
+        .stat-card-completed {
+            border-left-color: var(--success-color);
+        }
+        
+        .stat-card-pending {
+            border-left-color: var(--warning-color);
+        }
+        
+        .stat-icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+        }
+        
+        .stat-icon-total {
+            color: var(--primary-color);
+        }
+        
+        .stat-icon-completed {
+            color: var(--success-color);
+        }
+        
+        .stat-icon-pending {
+            color: var(--warning-color);
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        
+        .stat-label {
+            font-size: 1rem;
+            color: #6b7280;
+            font-weight: 500;
+        }
+        
+        .action-buttons {
+            margin-top: 40px;
+            text-align: center;
+        }
+        
+        .btn-primary-custom {
+            background: linear-gradient(135deg, var(--primary-color), #764ba2);
+            border: none;
+            padding: 12px 40px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 50px;
+            color: white;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+            margin: 10px;
+        }
+        
+        .btn-primary-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(99, 102, 241, 0.4);
+            color: white;
+        }
+        
+        .btn-secondary-custom {
+            background: white;
+            border: 2px solid white;
+            padding: 10px 35px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 50px;
+            color: var(--primary-color);
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+            margin: 10px;
+        }
+        
+        .btn-secondary-custom:hover {
+            background: white;
+            color: var(--primary-color);
+            box-shadow: 0 10px 25px rgba(255, 255, 255, 0.3);
+            text-decoration: none;
+        }
+        
+        .progress-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-top: 30px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .progress-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #1f2937;
+        }
+        
+        .progress-bar-wrapper {
+            margin-bottom: 20px;
+        }
+        
+        .progress-bar-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+            color: #6b7280;
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard-header h1 {
+                font-size: 2rem;
+            }
+            
+            .stat-number {
+                font-size: 2rem;
+            }
+            
+            .stat-icon {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">
+                <i class="bi bi-clipboard-check"></i> CodeSprint
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/tasks">Manage Tasks</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Dashboard Container -->
+    <div class="dashboard-container">
+        <!-- Header -->
+        <div class="dashboard-header">
+            <h1>Welcome to CodeSprint</h1>
+            <p>Your personal task management dashboard</p>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="container">
+            <div class="row">
+                <!-- Total Tasks Card -->
+                <div class="col-md-6 col-lg-4">
+                    <div class="stat-card stat-card-total">
+                        <div class="stat-icon stat-icon-total">
+                            <i class="bi bi-list-check"></i>
+                        </div>
+                        <div class="stat-number" th:text="${totalTasks}">0</div>
+                        <div class="stat-label">Total Tasks</div>
+                    </div>
+                </div>
+
+                <!-- Completed Tasks Card -->
+                <div class="col-md-6 col-lg-4">
+                    <div class="stat-card stat-card-completed">
+                        <div class="stat-icon stat-icon-completed">
+                            <i class="bi bi-check-circle-fill"></i>
+                        </div>
+                        <div class="stat-number" th:text="${completedTasks}">0</div>
+                        <div class="stat-label">Completed Tasks</div>
+                    </div>
+                </div>
+
+                <!-- Pending Tasks Card -->
+                <div class="col-md-6 col-lg-4">
+                    <div class="stat-card stat-card-pending">
+                        <div class="stat-icon stat-icon-pending">
+                            <i class="bi bi-clock-history"></i>
+                        </div>
+                        <div class="stat-number" th:text="${pendingTasks}">0</div>
+                        <div class="stat-label">Pending Tasks</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Progress Section -->
+            <div class="row mt-4" th:if="${tasks != null && tasks.size() > 0}">
+                <div class="col-lg-8 mx-auto">
+                    <div class="progress-section">
+                        <h4 class="progress-title">Task Completion Progress</h4>
+                        
+                        <div class="progress-bar-wrapper">
+                            <div class="progress-bar-label">
+                                <span>Completion Rate</span>
+                                <span th:text="${completionPercentage + '%'}">0%</span>
+                            </div>
+                            <div class="progress" style="height: 20px;">
+                                <div class="progress-bar bg-success" role="progressbar" 
+                                     th:style="'width:' + ${completionPercentage} + '%'"
+                                     aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <a href="/tasks" class="btn-primary-custom">
+                    <i class="bi bi-plus-circle"></i> Manage Tasks
+                </a>
+                <a href="/tasks" class="btn-secondary-custom">
+                    <i class="bi bi-arrow-right"></i> View All Tasks
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
